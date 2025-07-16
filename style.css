@@ -13,31 +13,25 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* MODIFICA: Impedisce lo scroll a livello della pagina intera */
 body {
     font-family: 'Poppins', sans-serif;
     background-color: var(--background-color);
     color: var(--text-color);
     line-height: 1.6;
-    overflow: hidden; /* Impedisce lo scroll del body */
+    overflow: hidden;
     position: relative;
     height: 100vh;
 }
 
-/* MODIFICA: Le schermate ora si sovrappongono invece di impilarsi */
 .screen {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-
-    display: flex; /* Manteniamo flex per il layout interno */
+    display: flex;
     flex-direction: column;
-
-    background-color: var(--background-color); /* Sfondo per coprire la schermata sottostante */
-
-    /* Transizione per l'effetto di entrata/uscita */
+    background-color: var(--background-color);
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease-in-out, visibility 0.3s;
@@ -47,7 +41,7 @@ body {
 .screen.active {
     opacity: 1;
     visibility: visible;
-    z-index: 20; /* Assicura che la schermata attiva sia sempre in cima */
+    z-index: 20;
 }
 
 header { padding: 2rem 1.5rem; text-align: center; flex-shrink: 0; }
@@ -76,7 +70,6 @@ header p { font-size: 1rem; color: var(--light-text-color); }
 .topic-card-summary .pro { color: var(--pro-color); }
 .topic-card-summary .con { color: var(--con-color); }
 
-/* --- Stile per il pulsante elimina lista --- */
 .topic-delete-btn {
     background: none;
     border: none;
@@ -110,7 +103,7 @@ header p { font-size: 1rem; color: var(--light-text-color); }
     justify-content: center;
     align-items: center;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    z-index: 30; /* Assicura che sia sopra la schermata attiva */
+    z-index: 30;
 }
 .fab:hover { transform: scale(1.1) rotate(90deg); box-shadow: 0 6px 20px rgba(40, 167, 69, 0.5); }
 
@@ -175,19 +168,49 @@ header p { font-size: 1rem; color: var(--light-text-color); }
 /* === REGOLE PER LA RESPONSIVITÀ === */
 /* ==================================== */
 @media screen and (max-width: 768px) {
-    .lists-container { display: none; }
-    .mobile-view-container { display: block; }
-    #decisionScreen { display: flex; flex-direction: column; }
-    .column { width: 100%; padding: 0 1.5rem; }
-    .mobile-view-container { order: 3; }
-    .pro-column { order: 1; }
-    .con-column { order: 2; }
-    .fab { bottom: 1.5rem; right: 1.5rem; }
+    /*
+     * CORREZIONE:
+     * Invece di nascondere l'intero .lists-container,
+     * lo usiamo per impilare i form di input e nascondiamo solo
+     * le liste al suo interno.
+    */
+
+    /* Impila le colonne (che contengono i form) una sopra l'altra */
+    .lists-container {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 0; /* Non deve crescere per riempire lo spazio */
+        gap: 0;
+        padding-bottom: 0;
+        overflow-y: visible;
+    }
+
+    .column {
+        width: 100%;
+        padding: 0 1.5rem; /* Aggiunge padding laterale ai form */
+    }
+
+    /* Nasconde solo le liste della vista desktop */
+    .column .list {
+        display: none;
+    }
+
+    /* Mostra la vista a tabella mobile */
+    .mobile-view-container {
+        display: block;
+    }
+
+    .fab {
+        bottom: 1.5rem;
+        right: 1.5rem;
+    }
 }
+
 @media screen and (max-width: 480px) {
     header { padding: 1.5rem 1rem; }
     .decision-header, .chart-container, .column { padding-left: 1rem; padding-right: 1rem; }
     .mobile-view-container { padding: 0 1rem 1rem; }
+    
     .add-item-form { flex-wrap: wrap; }
     .add-item-form input[type="text"] { width: 100%; margin-bottom: 0.5rem; }
     .add-item-form input[type="number"] { flex-grow: 1; }
