@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        /* === IMPOSTAZIONI GLOBALI E VARIABILI === */
+        :root {
+            --petrol-darkest: #012a36;
+            --petrol-dark: #004a5a;
+            --petrol-medium: #007a8a;
+            --accent-cyan: #1ee3cf;
+            --text-primary: #f0f5f5;
+            --text-secondary: #a0c5cf;
+            --danger-red: #c94040;
+            --background-gradient: linear-gradient(160deg, var(--petrol-dark), var(--petrol-darkest));
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            background: var(--background-gradient);
+            color: var(--text-primary);
+            margin: 0;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        /* === GESTIONE VISTE === */
+        .view { display: none; padding: 20px; position: absolute; width: 100%; height: 100%; top: 0; left: 0; overflow-y: auto; background: var(--background-gradient); animation: fadeIn 0.4s ease-in-out; }
+        .view.active { display: flex; flex-direction: column; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* === SPLASH SCREEN === */
+        #splash-view { align-items: center; justify-content: center; }
+        .splash-content { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 40px; }
+        .logo-img { max-width: 180px; height: auto; }
+        .splash-actions { display: flex; flex-direction: column; gap: 15px; width: 250px; }
+        .splash-btn { padding: 15px; font-size: 1rem; font-weight: 600; border-radius: 10px; border: none; cursor: pointer; background-color: var(--accent-cyan); color: var(--petrol-darkest); transition: transform 0.2s ease; }
+        .splash-btn:active { transform: scale(0.95); }
+        .splash-btn.secondary { background-color: transparent; color: var(--accent-cyan); border: 2px solid var(--accent-cyan); }
+
+        /* === HEADER HOME === */
+        .home-header { position: absolute; top: 15px; left: 15px; right: 15px; z-index: 10; display: flex; justify-content: space-between; align-items: center; }
+        #welcome-message { font-weight: 600; color: var(--text-secondary); }
+        .icon-btn { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--accent-cyan); }
+
+        /* === GRIGLIA CATEGORIE HOME === */
+        #home-view, #list-dashboard-view, #task-view, #profile-view { display: none; }
+        #home-view.active, #list-dashboard-view.active, #task-view.active, #profile-view.active { display: block; }
+        .category-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; padding-top: 80px; height: 100%; align-content: center; }
+        .category-btn { background: var(--petrol-dark); border-radius: 20px; padding: 25px 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: pointer; border: 1px solid var(--petrol-medium); box-shadow: var(--shadow); }
+        .category-btn span { color: var(--text-secondary); font-weight: 600; }
+        .category-btn svg { color: var(--accent-cyan); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* === STILI COMUNI VISTE INTERNE === */
+        .view-header { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; }
+        .view-header h1 { font-size: 1.8rem; color: var(--accent-cyan); margin: 0; }
+        .back-btn { background: none; border: none; cursor: pointer; color: var(--accent-cyan); padding: 5px; }
+        .back-btn svg { width: 32px; height: 32px; stroke-width: 2.5; }
+
+        /* === FORM === */
+        .form-container { width: 100%; max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+        .form-input { background: transparent; border: none; border-bottom: 2px solid var(--petrol-medium); padding: 15px 10px; font-size: 1rem; color: var(--text-primary); font-family: 'Manrope', sans-serif; }
+        .form-input:focus { outline: none; border-bottom-color: var(--accent-cyan); }
+        .form-btn { width: 100%; padding: 15px; margin-top: 20px; background: var(--accent-cyan); color: var(--petrol-darkest); border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+
+        /* === DASHBOARD E TASK === */
+        .list-card-grid { display: grid; gap: 15px; }
+        .list-card { background: var(--petrol-dark); border-radius: 15px; padding: 20px; border-left: 5px solid var(--accent-cyan); box-shadow: var(--shadow); cursor: pointer; }
+        .list-card h3 { margin: 0; }
+        .fab { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background-color: var(--accent-cyan); border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; color: var(--petrol-darkest); box-shadow: 0 5px 20px rgba(30, 227, 207, 0.4); cursor: pointer; }
+        .fab svg { width: 32px; height: 32px; stroke-width: 2.5; }
+        
+        /* === PROFILO === */
+        .profile-info { text-align: center; }
+        .logout-btn { background-color: var(--danger-red); margin-top: 40px; }
+    </style>
+</head>
+<body>
+
+    <div id="splash-view" class="view active"></div>
+    <div id="home-view" class="view"></div>
+    <div id="list-dashboard-view" class="view"></div>
+    <div id="task-view" class="view"></div>
+    <div id="profile-view" class="view"></div>
+    <div id="login-view" class="view"></div>
+    <div id="register-view" class="view"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- 1. SETUP ---
+            const SUPABASE_URL = 'https://qaaaxgmknqnxrllplszc.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhYWF4Z21rbnFueHJsbHBsc3pjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzNTQ0NjUsImV4cCI6MjA2NzkzMDQ2NX0.hqXPH0DQWMql1o6ZbkpmsamB_IAmmvdAumyGUxpSJfo'';
+            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            // --- 2. STATO GLOBALE ---
+            let currentUser = null;
+
+            // --- 3. OGGETTO PRINCIPALE DELL'APP ---
+            const app = {
+                // Riferimenti agli elementi del DOM
+                views: {
+                    splash: document.getElementById('splash-view'),
+                    home: document.getElementById('home-view'),
+                    dashboard: document.getElementById('list-dashboard-view'),
+                    login: document.getElementById('login-view'),
+                    register: document.getElementById('register-view'),
+                    profile: document.getElementById('profile-view'),
+                },
+                
+                // Funzione unica per navigare tra le viste
+                navigateTo(viewId) {
+                    for (const key in this.views) {
+                        this.views[key].classList.remove('active');
+                    }
+                    this.views[viewId]?.classList.add('active');
+                },
+                
+                // Funzioni per disegnare le viste
+                renderSplash() {
+                    this.views.splash.innerHTML = `
+                        <div class="splash-content">
+                            <img src="todoapp.png" alt="Logo TodoApp" class="logo-img">
+                            <div class="splash-actions">
+                                <button id="splash-login-btn" class="splash-btn">Login</button>
+                                <button id="splash-register-btn" class="splash-btn secondary">Registrati</button>
+                            </div>
+                        </div>`;
+                    this.navigateTo('splash');
+                },
+                renderHome() {
+                    const userName = currentUser.user_metadata.first_name || 'Utente';
+                    this.views.home.innerHTML = `
+                        <header class="home-header">
+                            <div id="welcome-message">Benvenuto, ${userName}</div>
+                            <button id="profile-btn" class="icon-btn"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
+                        </header>
+                        <div class="category-grid">
+                            <div class="category-btn" data-name="Lavoro" data-id="1"><svg width="48" height="48" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h3v3H7zM7 14h3v3H7zM14 7h3v3h-3zM14 14h3v3h-3z"/></svg><span>Lavoro</span></div>
+                            <div class="category-btn" data-name="Casa" data-id="2"><svg width="48" height="48" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Casa</span></div>
+                            <div class="category-btn" data-name="Spesa" data-id="3"><svg width="48" height="48" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.16"/></svg><span>Spesa</span></div>
+                            <div class="category-btn" data-name="Appuntamenti" data-id="4"><svg width="48" height="48" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg><span>Appuntamenti</span></div>
+                        </div>`;
+                    this.navigateTo('home');
+                },
+                renderLogin() {
+                     this.views.login.innerHTML = `<header class="view-header"><button class="back-btn" data-target="splash"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><h1>Login</h1></header><form id="login-form" class="form-container"><input name="email" type="email" placeholder="Email" required><input name="password" type="password" placeholder="Password" required><button type="submit" class="form-btn">Accedi</button></form>`;
+                     this.navigateTo('login');
+                },
+                renderRegister() {
+                    this.views.register.innerHTML = `<header class="view-header"><button class="back-btn" data-target="splash"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><h1>Registrati</h1></header><form id="register-form" class="form-container"><input name="nome" type="text" placeholder="Nome" required><input name="cognome" type="text" placeholder="Cognome" required><input name="email" type="email" placeholder="Email" required><input name="password" minlength="6" placeholder="Password" required><button type="submit" class="form-btn">Registrati</button></form>`;
+                    this.navigateTo('register');
+                },
+                renderProfile() {
+                    const user = currentUser;
+                    this.views.profile.innerHTML = `
+                        <header class="view-header"><button class="back-btn" data-target="home"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><h1>Profilo</h1></header>
+                        <div class="profile-info"><h2>${user.user_metadata.first_name || ''} ${user.user_metadata.last_name || ''}</h2><p>${user.email}</p></div>
+                        <button id="logout-btn" class="form-btn logout-btn">Esci</button>`;
+                    this.navigateTo('profile');
+                },
+                async renderDashboard(categoryName, categoryId) {
+                    this.views.dashboard.innerHTML = `<header class="view-header"><button class="back-btn" data-target="home"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"></path></svg></button><h1>${categoryName}</h1></header><p>Caricamento...</p>`;
+                    this.navigateTo('dashboard');
+                    
+                    const { data: lists, error } = await supabaseClient.from('lists').select('*').eq('category_id', categoryId);
+                    if (error) return alert(error.message);
+
+                    const content = lists.length ? lists.map(l => `<div class="list-card"><h3>${l.name}</h3></div>`).join('') : `<p>Nessuna lista. Creane una!</p>`;
+                    this.views.dashboard.innerHTML = `
+                        <header class="view-header"><button class="back-btn" data-target="home"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><h1>${categoryName}</h1></header>
+                        <div class="list-card-grid">${content}</div>
+                        <button class="fab" data-category-name="${categoryName}" data-category-id="${categoryId}">+</button>`;
+                },
+
+                // Gestori di azioni
+                async createList(categoryName, categoryId) {
+                    const listName = prompt("Nome della nuova lista:");
+                    if (!listName) return;
+                    const { data: newList, error } = await supabaseClient.from('lists').insert({ name: listName, owner_id: currentUser.id, category_id: categoryId }).select().single();
+                    if (error) return alert("Errore creazione lista: " + error.message);
+                    await supabaseClient.from('list_members').insert({ list_id: newList.id, user_id: currentUser.id });
+                    await this.renderDashboard(categoryName, categoryId);
+                }
+            };
+
+            // --- GESTIONE EVENTI ---
+            document.body.addEventListener('click', async (e) => {
+                const button = e.target.closest('button');
+                const categoryBtn = e.target.closest('.category-btn');
+
+                if (button) {
+                    const id = button.id;
+                    const classList = button.classList;
+                    if (id === 'splash-login-btn') app.renderLogin();
+                    if (id === 'splash-register-btn') app.renderRegister();
+                    if (classList.contains('back-btn')) app.navigateTo(button.dataset.target);
+                    if (currentUser) {
+                        if (id === 'profile-btn') app.renderProfile();
+                        if (id === 'logout-btn') await supabaseClient.auth.signOut();
+                        if (classList.contains('fab')) await app.createList(button.dataset.categoryName, button.dataset.categoryId);
+                    }
+                }
+                
+                if (currentUser && categoryBtn) {
+                    const { name, id } = categoryBtn.dataset;
+                    await app.renderDashboard(name, id);
+                }
+            });
+
+            document.body.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                const inputs = Object.fromEntries(new FormData(form));
+
+                if (form.id === 'login-form') {
+                    const { error } = await supabaseClient.auth.signInWithPassword(inputs);
+                    if (error) alert(error.message);
+                } else if (form.id === 'register-form') {
+                    const { error } = await supabaseClient.auth.signUp({
+                        email: inputs.email, password: inputs.password,
+                        options: { data: { first_name: inputs.nome, last_name: inputs.cognome } }
+                    });
+                    if (error) alert(error.message);
+                    else { alert('Registrazione avvenuta!'); app.renderLogin(); }
+                }
+            });
+
+            // --- PUNTO DI INGRESSO ---
+            supabaseClient.auth.onAuthStateChange((_event, session) => {
+                currentUser = session?.user || null;
+                if (currentUser) {
+                    app.renderHome();
+                } else {
+                    app.renderSplash();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

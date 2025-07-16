@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro & Contro</title>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#28a745">
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+
+    <div id="homeScreen" class="screen active">
+        <header>
+            <h1>Pro & Contro</h1>
+            <p>Le tue decisioni, più chiare che mai.</p>
+        </header>
+        <main id="recentTopics">
+            <div class="empty-state">
+                <i class="fas fa-clipboard-list"></i>
+                <p>Nessuna decisione ancora.<br>Inizia premendo il pulsante '+'!</p>
+            </div>
+        </main>
+        <button id="addTopicBtn" class="fab"><i class="fas fa-plus"></i></button>
+    </div>
+
+    <div id="decisionScreen" class="screen">
+        <header class="decision-header">
+            <button id="backBtn"><i class="fas fa-arrow-left"></i></button>
+            <h1 id="topicTitle"></h1>
+            <button id="shareBtn"><i class="fas fa-share-alt"></i></button>
+        </header>
+
+        <div class="chart-container">
+            <div class="chart-bar">
+                <div id="proBar" class="bar pro-bar"></div>
+                <div id="conBar" class="bar con-bar"></div>
+            </div>
+        </div>
+
+        <div class="lists-container">
+            <div class="column pro-column">
+                <h2><i class="fas fa-thumbs-up"></i> Pro</h2>
+                <div class="add-item-form">
+                    <input type="text" id="proInput" placeholder="Aggiungi un pro...">
+                    <input type="number" id="proScore" placeholder="Peso (1-5)" min="1" max="5">
+                    <button id="addProBtn"><i class="fas fa-plus"></i></button>
+                </div>
+                <div id="proList" class="list"></div>
+            </div>
+
+            <div class="column con-column">
+                <h2><i class="fas fa-thumbs-down"></i> Contro</h2>
+                <div class="add-item-form">
+                    <input type="text" id="conInput" placeholder="Aggiungi un contro...">
+                    <input type="number" id="conScore" placeholder="Peso (1-5)" min="1" max="5">
+                    <button id="addConBtn"><i class="fas fa-plus"></i></button>
+                </div>
+                <div id="conList" class="list"></div>
+            </div>
+        </div>
+
+        <div id="mobileComparisonView" class="mobile-view-container">
+            </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="script.js"></script>
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+              console.log('Service Worker registrato con successo:', registration);
+            })
+            .catch(error => {
+              console.log('Registrazione del Service Worker fallita:', error);
+            });
+        });
+      }
+    </script>
+
+</body>
+</html>

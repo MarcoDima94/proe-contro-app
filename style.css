@@ -1,0 +1,194 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+:root {
+    --pro-color: #28a745;
+    --con-color: #dc3545;
+    --background-color: #f8f9fa;
+    --card-color: #ffffff;
+    --text-color: #212529;
+    --light-text-color: #6c757d;
+    --border-color: #dee2e6;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* MODIFICA: Impedisce lo scroll a livello della pagina intera */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    overflow: hidden; /* Impedisce lo scroll del body */
+    position: relative;
+    height: 100vh;
+}
+
+/* MODIFICA: Le schermate ora si sovrappongono invece di impilarsi */
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    display: flex; /* Manteniamo flex per il layout interno */
+    flex-direction: column;
+
+    background-color: var(--background-color); /* Sfondo per coprire la schermata sottostante */
+
+    /* Transizione per l'effetto di entrata/uscita */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s;
+    z-index: 10;
+}
+
+.screen.active {
+    opacity: 1;
+    visibility: visible;
+    z-index: 20; /* Assicura che la schermata attiva sia sempre in cima */
+}
+
+header { padding: 2rem 1.5rem; text-align: center; flex-shrink: 0; }
+header h1 { font-size: 2rem; font-weight: 700; }
+header p { font-size: 1rem; color: var(--light-text-color); }
+
+#recentTopics { flex-grow: 1; padding: 0 1.5rem; overflow-y: auto; }
+
+.topic-card {
+    background: var(--card-color);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+}
+.topic-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1); }
+.topic-card-content { flex-grow: 1; display: flex; justify-content: space-between; align-items: center; }
+.topic-card-title { font-weight: 600; }
+.topic-card-summary { display: flex; gap: 0.5rem; font-size: 0.8rem; color: var(--light-text-color); }
+.topic-card-summary .pro { color: var(--pro-color); }
+.topic-card-summary .con { color: var(--con-color); }
+
+/* --- Stile per il pulsante elimina lista --- */
+.topic-delete-btn {
+    background: none;
+    border: none;
+    color: var(--light-text-color);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    margin-left: 0.5rem;
+    opacity: 0.5;
+    transition: opacity 0.2s ease, color 0.2s ease;
+}
+.topic-delete-btn:hover { opacity: 1; color: var(--con-color); }
+
+.empty-state { text-align: center; margin-top: 4rem; color: var(--light-text-color); }
+.empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+
+.fab {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, var(--pro-color), #20c997);
+    color: white;
+    font-size: 1.5rem;
+    border: none;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    z-index: 30; /* Assicura che sia sopra la schermata attiva */
+}
+.fab:hover { transform: scale(1.1) rotate(90deg); box-shadow: 0 6px 20px rgba(40, 167, 69, 0.5); }
+
+/* --- Schermata Decisione --- */
+.decision-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; background-color: var(--card-color); box-shadow: 0 2px 8px rgba(0,0,0,0.05); flex-shrink: 0; }
+.decision-header h1 { font-size: 1.2rem; text-align: center; flex-grow: 1; }
+.decision-header button { background: none; border: none; font-size: 1.2rem; color: var(--text-color); cursor: pointer; padding: 0.5rem; }
+
+.chart-container { padding: 1.5rem; flex-shrink: 0;}
+.chart-bar { display: flex; width: 100%; height: 10px; background-color: var(--border-color); border-radius: 5px; overflow: hidden; }
+.bar { height: 100%; transition: width 0.5s ease-in-out; }
+.pro-bar { background-color: var(--pro-color); }
+.con-bar { background-color: var(--con-color); }
+
+/* --- Vista Desktop: Colonne --- */
+.lists-container { display: flex; flex-grow: 1; gap: 1.5rem; padding: 0 1.5rem 1.5rem; overflow-y: hidden; }
+.column { width: 50%; display: flex; flex-direction: column; }
+.column h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.pro-column h2 { color: var(--pro-color); }
+.con-column h2 { color: var(--con-color); }
+
+.list { flex-grow: 1; overflow-y: auto; padding-right: 10px; }
+.list-item { background-color: var(--card-color); border-radius: 8px; padding: 0.8rem 1rem; margin-bottom: 0.8rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative; }
+.list-item.pro-item { border-left: 4px solid var(--pro-color); }
+.list-item.con-item { border-left: 4px solid var(--con-color); }
+.item-content { flex-grow: 1; }
+.item-text { font-weight: 400; }
+.item-score { font-size: 0.8rem; font-weight: 600; color: white; width: 24px; height: 24px; display: flex; justify-content: center; align-items: center; border-radius: 50%; margin-left: 1rem; }
+.pro-item .item-score { background-color: var(--pro-color); }
+.con-item .item-score { background-color: var(--con-color); }
+
+.delete-item-btn { background: none; border: none; color: var(--light-text-color); cursor: pointer; font-size: 0.9rem; opacity: 0; transition: opacity 0.2s ease; }
+.list-item:hover .delete-item-btn { opacity: 1; }
+
+.add-item-form { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+.add-item-form input { border: 1px solid var(--border-color); border-radius: 6px; padding: 0.5rem; font-size: 0.9rem; font-family: 'Poppins', sans-serif; }
+.add-item-form input[type="text"] { flex-grow: 1; }
+.add-item-form input[type="number"] { width: 80px; }
+.add-item-form button { border-radius: 6px; border: none; color: white; font-size: 1rem; cursor: pointer; width: 40px; height: 40px; transition: background-color 0.2s ease; }
+#addProBtn { background-color: var(--pro-color); }
+#addConBtn { background-color: var(--con-color); }
+
+/* --- Vista Mobile: Tabella --- */
+.mobile-view-container { display: none; padding: 0 1.5rem 1.5rem; flex-grow: 1; overflow-y: auto; }
+.comparison-table { width: 100%; border-collapse: collapse; }
+.comparison-table th, .comparison-table td { padding: 0.8rem 0.5rem; text-align: left; border-bottom: 1px solid var(--border-color); vertical-align: top; }
+.comparison-table th { font-weight: 600; }
+.comparison-table th.pro-header { color: var(--pro-color); }
+.comparison-table th.con-header { color: var(--con-color); }
+.comparison-table td { font-size: 0.9rem; width: 50%; }
+.comparison-table .placeholder { color: #ccc; text-align: center; }
+
+.item-cell-content { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+.item-cell-content .text { flex-grow: 1; word-break: break-word; }
+.item-cell-content .score { font-size: 0.75rem; font-weight: 700; color: white; width: 20px; height: 20px; display: flex; justify-content: center; align-items: center; border-radius: 50%; flex-shrink: 0; }
+.pro-cell .score { background-color: var(--pro-color); }
+.con-cell .score { background-color: var(--con-color); }
+.mobile-delete-btn { background: none; border: none; color: var(--light-text-color); cursor: pointer; opacity: 0.6; padding: 0 0.5rem; }
+.mobile-delete-btn:hover { opacity: 1; color: var(--con-color); }
+
+/* ==================================== */
+/* === REGOLE PER LA RESPONSIVITÀ === */
+/* ==================================== */
+@media screen and (max-width: 768px) {
+    .lists-container { display: none; }
+    .mobile-view-container { display: block; }
+    #decisionScreen { display: flex; flex-direction: column; }
+    .column { width: 100%; padding: 0 1.5rem; }
+    .mobile-view-container { order: 3; }
+    .pro-column { order: 1; }
+    .con-column { order: 2; }
+    .fab { bottom: 1.5rem; right: 1.5rem; }
+}
+@media screen and (max-width: 480px) {
+    header { padding: 1.5rem 1rem; }
+    .decision-header, .chart-container, .column { padding-left: 1rem; padding-right: 1rem; }
+    .mobile-view-container { padding: 0 1rem 1rem; }
+    .add-item-form { flex-wrap: wrap; }
+    .add-item-form input[type="text"] { width: 100%; margin-bottom: 0.5rem; }
+    .add-item-form input[type="number"] { flex-grow: 1; }
+}

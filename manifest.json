@@ -1,0 +1,22 @@
+{
+  "name": "Pro & Contro",
+  "short_name": "Pro & Contro",
+  "description": "Un'app semplice per prendere decisioni migliori creando liste di pro e contro.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f8f9fa",
+  "theme_color": "#28a745",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "images/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "images/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
